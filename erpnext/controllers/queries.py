@@ -255,6 +255,12 @@ def item_query(
 		# scan description only if items are less than 50000
 		description_cond = "or tabItem.description LIKE %(txt)s"
 
+	# Use different LIMIT syntax for PostgreSQL
+	if frappe.db.db_type == "postgres":
+		limit_clause = "limit %(page_len)s offset %(start)s"
+	else:
+		limit_clause = "limit %(start)s, %(page_len)s"
+	
 	return frappe.db.sql(
 		"""select
 			tabItem.name {columns}
@@ -271,12 +277,13 @@ def item_query(
 			if(locate(%(_txt)s, item_name), locate(%(_txt)s, item_name), 99999),
 			idx desc,
 			name, item_name
-		limit %(start)s, %(page_len)s """.format(
+		{limit_clause}""".format(
 			columns=columns,
 			scond=searchfields,
 			fcond=get_filters_cond(doctype, filters, conditions).replace("%", "%%"),
 			mcond=get_match_cond(doctype).replace("%", "%%"),
 			description_cond=description_cond,
+			limit_clause=limit_clause,
 		),
 		{
 			"today": nowdate(),
