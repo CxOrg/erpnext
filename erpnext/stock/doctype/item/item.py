@@ -1152,16 +1152,29 @@ def make_item_price(item, price_list_name, item_price):
 def get_timeline_data(doctype: str, name: str) -> dict[int, int]:
 	"""get timeline data based on Stock Ledger Entry. This is displayed as heatmap on the item page."""
 
-	sle = frappe.qb.DocType("Stock Ledger Entry")
-
-	return dict(
-		frappe.qb.from_(sle)
-		.select(UnixTimestamp(sle.posting_date), Count("*"))
-		.where(sle.item_code == name)
-		.where(sle.posting_date > CurDate() - Interval(years=1))
-		.groupby(sle.posting_date)
-		.run()
-	)
+	# PostgreSQL doesn't allow CURRENT_DATE() with parentheses in INTERVAL operations
+	if frappe.db.db_type == "postgres":
+		# Use raw SQL for PostgreSQL to avoid the parentheses issue
+		return dict(
+			frappe.db.sql("""
+				SELECT EXTRACT(epoch FROM "posting_date") as timestamp, COUNT(*) as count
+				FROM "tabStock Ledger Entry"
+				WHERE "item_code" = %s
+				AND "posting_date" > CURRENT_DATE - INTERVAL '1 year'
+				GROUP BY "posting_date"
+			""", (name,), as_dict=True)
+		)
+	else:
+		# Use Query Builder for other databases
+		sle = frappe.qb.DocType("Stock Ledger Entry")
+		return dict(
+			frappe.qb.from_(sle)
+			.select(UnixTimestamp(sle.posting_date), Count("*"))
+			.where(sle.item_code == name)
+			.where(sle.posting_date > CurDate() - Interval(years=1))
+			.groupby(sle.posting_date)
+			.run()
+		)
 
 
 def validate_end_of_life(item_code, end_of_life=None, disabled=None):
