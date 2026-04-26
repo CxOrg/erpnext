@@ -48,7 +48,7 @@ def get_stock_value_from_bin(warehouse=None, item_code=None):
 
 	query = (
 		"""select sum(stock_value) from `tabBin`, `tabItem` where 1 = 1
-		and `tabItem`.name = `tabBin`.item_code and ifnull(`tabItem`.disabled, 0) = 0 %s"""
+		and `tabItem`.name = `tabBin`.item_code and COALESCE(`tabItem`.disabled, 0) = 0 %s"""
 		% conditions
 	)
 

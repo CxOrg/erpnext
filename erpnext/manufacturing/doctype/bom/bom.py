@@ -1394,21 +1394,21 @@ def get_bom_items_as_dict(
 ):
 	item_dict = {}
 
-	group_by_cond = "group by item_code, stock_uom, operation"
+	group_by_cond = "group by item_code, stock_uom, operation, bom_item.item_name, item.image, bom.project, item.item_group, item.allow_alternative_item, item_default.default_warehouse, item_default.expense_account, item_default.buying_cost_center"
 	if frappe.get_cached_value("BOM", bom, "track_semi_finished_goods"):
 		fetch_exploded = 0
-		group_by_cond = "group by item_code, operation_row_id, stock_uom"
+		group_by_cond = "group by item_code, operation_row_id, stock_uom, bom_item.item_name, item.image, bom.project, item.item_group, item.allow_alternative_item, item_default.default_warehouse, item_default.expense_account, item_default.buying_cost_center"
 
 	if fetch_secondary_items:
 		fetch_exploded = 0
-		group_by_cond = "group by item_code"
+		group_by_cond = "group by item_code, bom_item.item_name, item.image, bom.project, item.item_group, item.allow_alternative_item, item_default.default_warehouse, item_default.expense_account, item_default.buying_cost_center"
 
 	# Did not use qty_consumed_per_unit in the query, as it leads to rounding loss
 	query = """select
 				bom_item.item_code,
 				bom_item.idx,
 				item.item_name,
-				sum(bom_item.{qty_field}/ifnull(bom.quantity, 1)) * %(qty)s as qty,
+				sum(bom_item.{qty_field}/COALESCE(bom.quantity, 1)) * %(qty)s as qty,
 				item.image,
 				bom.project,
 				item.stock_uom,
@@ -1442,7 +1442,7 @@ def get_bom_items_as_dict(
 			group_by_cond=group_by_cond,
 			select_columns=""", bom_item.source_warehouse, bom_item.operation,
 				bom_item.include_item_in_manufacturing, bom_item.description, bom_item.rate, bom_item.sourced_by_supplier,
-				sum(bom_item.stock_qty/ifnull(bom.quantity, 1)) * bom_item.rate * %(qty)s as amount,
+				sum(bom_item.stock_qty/COALESCE(bom.quantity, 1)) * bom_item.rate * %(qty)s as amount,
 				(Select idx from `tabBOM Item` where item_code = bom_item.item_code and parent = %(parent)s limit 1) as idx""",
 		)
 

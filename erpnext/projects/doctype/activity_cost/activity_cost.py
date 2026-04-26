@@ -55,7 +55,7 @@ class ActivityCost(Document):
 				)
 		else:
 			if frappe.db.sql(
-				"""select name from `tabActivity Cost` where ifnull(employee, '')='' and activity_type= %s and name != %s""",
+				"""select name from `tabActivity Cost` where COALESCE(employee, '')='' and activity_type= %s and name != %s""",
 				(self.activity_type, self.name),
 			):
 				frappe.throw(

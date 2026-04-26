@@ -54,7 +54,7 @@ def boot_session(bootinfo):
 			update={"doctype": ":Company"},
 		)
 
-		party_account_types = frappe.db.sql(""" select name, ifnull(account_type, '') from `tabParty Type`""")
+		party_account_types = frappe.db.sql(""" select name, COALESCE(account_type, '') from `tabParty Type`""")
 		bootinfo.party_account_types = frappe._dict(party_account_types)
 		fiscal_year = erpnext.accounts.utils.get_fiscal_years(
 			frappe.utils.nowdate(), company=get_user_default("company"), raise_on_missing=False

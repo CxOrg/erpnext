@@ -15,7 +15,7 @@
  "name": "First Response Time for Issues",
  "owner": "Administrator",
  "prepared_report": 0,
- "query": "select date(creation) as creation_date, avg(mins_to_first_response) from tabIssue where creation > '2016-05-01' group by date(creation) order by creation_date;",
+ "query": "select date(creation) as creation_date, avg(mins_to_first_response) from \"tabIssue\" where creation > '2016-05-01' group by date(creation) order by creation_date;",
  "ref_doctype": "Issue",
  "report_name": "First Response Time for Issues",
  "report_type": "Script Report",
