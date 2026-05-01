@@ -131,6 +131,9 @@ def get_columns(filters):
 def get_data(filters):
 	data = []
 
+	if not filters.get("company"):
+		frappe.throw(_("Company is required for this report"))
+	
 	company_list = get_descendants_of("Company", filters.get("company"))
 	company_list.append(filters.get("company"))
 
