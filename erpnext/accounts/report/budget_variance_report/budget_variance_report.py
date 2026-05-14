@@ -367,6 +367,16 @@ def get_columns(filters):
 
 
 def get_fiscal_years(filters):
+	# Default to current fiscal year if not provided
+	if not filters.get("from_fiscal_year") or not filters.get("to_fiscal_year"):
+		current_fiscal_year = get_fiscal_year(frappe.utils.today())
+		if current_fiscal_year:
+			filters["from_fiscal_year"] = current_fiscal_year[0]
+			filters["to_fiscal_year"] = current_fiscal_year[0]
+		else:
+			# If no fiscal year found, return empty
+			return []
+
 	fiscal_year = frappe.db.sql(
 		"""
 			select
